@@ -1,15 +1,17 @@
-# Akwadra Backend - API Validation
+# Akwadra Backend - Video URL Validation API
 
 ## نظرة عامة
-تطبيق Backend بسيط يوفر نقطة نهاية `/api/validate` للتحقق من صحة البيانات.
+تطبيق Backend يوفر نقطة نهاية `/api/validate` للتحقق من صحة روابط الفيديو واستخراج البيانات الوصفية.
 
-## المميزات
-- ✅ التحقق من صحة البريد الإلكتروني
-- ✅ التحقق من اسم المستخدم
-- ✅ التحقق من العمر
-- ✅ التحقق من كلمة المرور
-- ✅ التحقق من رقم الهاتف
-- ✅ التحقق من الروابط (URLs)
+## المميزات الجديدة
+- ✅ التحقق من روابط الفيديو (YouTube, Vimeo)
+- ✅ قبول HTTPS فقط
+- ✅ التحقق من الدومينات المسموحة
+- ✅ استخراج metadata (المدة والعنوان)
+- ✅ التحقق من المدة حسب نوع الحساب (Free/Premium)
+- ✅ استجابة سريعة (< 500ms)
+- ⛔ ممنوع تحميل الفيديو
+- ⛔ ممنوع التخزين
 
 ## التثبيت
 ```bash
@@ -26,36 +28,35 @@ npm start
 npm run dev
 ```
 
-## استخدام API
+## استخدام API الجديد
 
 ### نقطة النهاية: POST /api/validate
 
 **مثال على الطلب:**
 ```json
 {
-  "email": "user@example.com",
-  "username": "testuser",
-  "age": 25,
-  "password": "SecurePass123",
-  "phone": "+1234567890",
-  "url": "https://example.com"
+  "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 }
+```
+
+**Headers اختيارية:**
+```
+x-user-tier: free | premium
 ```
 
 **مثال على الاستجابة الناجحة:**
 ```json
 {
   "success": true,
-  "results": {
-    "email": { "valid": true },
-    "username": { "valid": true },
-    "age": { "valid": true },
-    "password": { "valid": true },
-    "phone": { "valid": true },
-    "url": { "valid": true }
+  "metadata": {
+    "duration": 55,
+    "title": "YouTube Video Sample",
+    "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
   },
-  "timestamp": "2024-01-15T10:30:00.000Z",
-  "fieldsValidated": 6
+  "userTier": "free",
+  "maxDuration": 60,
+  "responseTime": "125ms",
+  "timestamp": "2024-01-15T10:30:00.000Z"
 }
 ```
 
@@ -63,45 +64,39 @@ npm run dev
 ```json
 {
   "success": false,
-  "results": {
-    "email": { "valid": false, "error": "البريد الإلكتروني غير صالح" },
-    "username": { "valid": true },
-    "age": { "valid": false, "error": "العمر يجب أن يكون بين 13 و 120" }
+  "error": "مدة الفيديو 70 ثانية تتجاوز الحد المسموح 60 ثانية لحساب free",
+  "metadata": {
+    "duration": 70,
+    "title": "Vimeo Video Sample"
   },
-  "timestamp": "2024-01-15T10:30:00.000Z",
-  "fieldsValidated": 3
+  "timestamp": "2024-01-15T10:30:00.000Z"
 }
 ```
 
 ## قواعد التحقق
 
-### البريد الإلكتروني (email)
-- يجب أن يكون بتنسيق بريد إلكتروني صالح
+### الرابط (URL)
+- يجب أن يكون HTTPS فقط
+- يجب أن يكون من الدومينات المسموحة:
+  - youtube.com
+  - www.youtube.com
+  - youtu.be
+  - vimeo.com
+  - www.vimeo.com
 
-### اسم المستخدم (username)
-- الحد الأدنى 3 أحرف
-- أحرف وأرقام وشرطة سفلية فقط
+### المدة (Duration)
+- **Free Account**: حد أقصى 60 ثانية
+- **Premium Account**: حد أقصى 90 ثانية
 
-### العمر (age)
-- يجب أن يكون رقماً
-- بين 13 و 120
+### القيود
+- يجب إرسال حقل `url` فقط
+- لا يتم قبول أي حقول إضافية
+- لا يتم تحميل أو تخزين الفيديو
+- استخراج metadata فقط
 
-### كلمة المرور (password)
-- الحد الأدنى 8 أحرف
-- حرف كبير واحد على الأقل
-- حرف صغير واحد على الأقل
-- رقم واحد على الأقل
-
-### رقم الهاتف (phone)
-- تنسيق رقم هاتف دولي صالح
-
-### الرابط (url)
-- يجب أن يكون رابط URL صالح
-
-## الملاحظات
-- لا يتم تحميل أو تخزين أي بيانات
-- التحقق يتم في الذاكرة فقط
-- جميع الاستجابات تتضمن طابع زمني
+## الأداء
+- زمن الاستجابة المستهدف: أقل من 500ms
+- معالجة سريعة بدون تحميل ملفات
 
 ## الترخيص
 MIT
