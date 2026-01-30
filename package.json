@@ -1,13 +1,13 @@
 {
   "name": "akwadra-backend",
   "version": "1.0.0",
-  "description": "Akwadra Backend with /api/validate endpoint",
+  "description": "Akwadra Backend with /api/validate endpoint for video URL validation",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-  "keywords": ["validation", "api", "express"],
+  "keywords": ["validation", "api", "express", "video"],
   "author": "Akwadra",
   "license": "MIT",
   "dependencies": {
