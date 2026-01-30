@@ -17,9 +17,7 @@ async function testValidation() {
     
     try {
         const testData = {
-            email: 'test@example.com',
-            username: 'testuser',
-            age: 25
+            url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
         };
         
         const response = await fetch('/api/validate', {
