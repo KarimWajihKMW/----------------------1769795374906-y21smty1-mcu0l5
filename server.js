@@ -6,100 +6,137 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-const validationRules = {
-    email: (value) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(value) ? { valid: true } : { valid: false, error: 'البريد الإلكتروني غير صالح' };
-    },
-    username: (value) => {
-        if (!value || value.length < 3) {
-            return { valid: false, error: 'اسم المستخدم يجب أن يكون 3 أحرف على الأقل' };
-        }
-        if (!/^[a-zA-Z0-9_]+$/.test(value)) {
-            return { valid: false, error: 'اسم المستخدم يجب أن يحتوي على أحرف وأرقام فقط' };
-        }
-        return { valid: true };
-    },
-    age: (value) => {
-        const age = parseInt(value);
-        if (isNaN(age)) {
-            return { valid: false, error: 'العمر يجب أن يكون رقماً' };
-        }
-        if (age < 13 || age > 120) {
-            return { valid: false, error: 'العمر يجب أن يكون بين 13 و 120' };
-        }
-        return { valid: true };
-    },
-    password: (value) => {
-        if (!value || value.length < 8) {
-            return { valid: false, error: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' };
-        }
-        if (!/[A-Z]/.test(value)) {
-            return { valid: false, error: 'كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل' };
-        }
-        if (!/[a-z]/.test(value)) {
-            return { valid: false, error: 'كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل' };
-        }
-        if (!/[0-9]/.test(value)) {
-            return { valid: false, error: 'كلمة المرور يجب أن تحتوي على رقم واحد على الأقل' };
-        }
-        return { valid: true };
-    },
-    phone: (value) => {
-        const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
-        return phoneRegex.test(value) ? { valid: true } : { valid: false, error: 'رقم الهاتف غير صالح' };
-    },
-    url: (value) => {
-        try {
-            new URL(value);
-            return { valid: true };
-        } catch {
-            return { valid: false, error: 'الرابط غير صالح' };
-        }
-    }
-};
+const ALLOWED_DOMAINS = [
+    'youtube.com',
+    'www.youtube.com',
+    'youtu.be',
+    'vimeo.com',
+    'www.vimeo.com'
+];
 
-app.post('/api/validate', (req, res) => {
-    const data = req.body;
+const MAX_DURATION_FREE = 60;
+const MAX_DURATION_PREMIUM = 90;
+
+function validateUrlMiddleware(req, res, next) {
+    const startTime = Date.now();
     
-    if (!data || typeof data !== 'object') {
+    const { url } = req.body;
+    
+    if (!url || typeof url !== 'string') {
         return res.status(400).json({
             success: false,
-            error: 'البيانات المرسلة غير صالحة',
+            error: 'يجب إرسال حقل url فقط',
             timestamp: new Date().toISOString()
         });
     }
     
-    const results = {};
-    let hasErrors = false;
-    
-    for (const [field, value] of Object.entries(data)) {
-        if (validationRules[field]) {
-            const validationResult = validationRules[field](value);
-            results[field] = validationResult;
-            if (!validationResult.valid) {
-                hasErrors = true;
-            }
-        } else {
-            results[field] = {
-                valid: true,
-                warning: 'لا توجد قاعدة تحقق لهذا الحقل'
-            };
-        }
+    const bodyKeys = Object.keys(req.body);
+    if (bodyKeys.length !== 1 || bodyKeys[0] !== 'url') {
+        return res.status(400).json({
+            success: false,
+            error: 'يجب إرسال حقل url فقط، لا حقول إضافية',
+            timestamp: new Date().toISOString()
+        });
     }
     
-    const response = {
-        success: !hasErrors,
-        results: results,
-        timestamp: new Date().toISOString(),
-        fieldsValidated: Object.keys(data).length
+    let parsedUrl;
+    try {
+        parsedUrl = new URL(url);
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            error: 'الرابط غير صالح',
+            timestamp: new Date().toISOString()
+        });
+    }
+    
+    if (parsedUrl.protocol !== 'https:') {
+        return res.status(400).json({
+            success: false,
+            error: 'يجب استخدام بروتوكول https فقط',
+            timestamp: new Date().toISOString()
+        });
+    }
+    
+    const hostname = parsedUrl.hostname.toLowerCase();
+    const isDomainAllowed = ALLOWED_DOMAINS.some(domain => hostname === domain || hostname.endsWith('.' + domain));
+    
+    if (!isDomainAllowed) {
+        return res.status(400).json({
+            success: false,
+            error: 'الدومين غير مسموح. الدومينات المسموحة: YouTube, Vimeo',
+            timestamp: new Date().toISOString()
+        });
+    }
+    
+    req.validatedUrl = parsedUrl;
+    req.startTime = startTime;
+    next();
+}
+
+async function extractMetadata(url) {
+    const urlString = url.toString();
+    const hostname = url.hostname.toLowerCase();
+    
+    let mockDuration = 45;
+    let mockTitle = 'Sample Video';
+    
+    if (hostname.includes('youtube')) {
+        mockDuration = 55;
+        mockTitle = 'YouTube Video Sample';
+    } else if (hostname.includes('vimeo')) {
+        mockDuration = 70;
+        mockTitle = 'Vimeo Video Sample';
+    }
+    
+    return {
+        duration: mockDuration,
+        title: mockTitle,
+        url: urlString
     };
-    
-    if (hasErrors) {
-        return res.status(400).json(response);
+}
+
+app.post('/api/validate', validateUrlMiddleware, async (req, res) => {
+    try {
+        const metadata = await extractMetadata(req.validatedUrl);
+        
+        const userTier = req.headers['x-user-tier'] || 'free';
+        const maxDuration = userTier === 'premium' ? MAX_DURATION_PREMIUM : MAX_DURATION_FREE;
+        
+        if (metadata.duration > maxDuration) {
+            return res.status(400).json({
+                success: false,
+                error: `مدة الفيديو ${metadata.duration} ثانية تتجاوز الحد المسموح ${maxDuration} ثانية لحساب ${userTier}`,
+                metadata: {
+                    duration: metadata.duration,
+                    title: metadata.title
+                },
+                timestamp: new Date().toISOString()
+            });
+        }
+        
+        const responseTime = Date.now() - req.startTime;
+        
+        return res.status(200).json({
+            success: true,
+            metadata: {
+                duration: metadata.duration,
+                title: metadata.title,
+                url: metadata.url
+            },
+            userTier: userTier,
+            maxDuration: maxDuration,
+            responseTime: `${responseTime}ms`,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: 'خطأ في استخراج البيانات',
+            timestamp: new Date().toISOString()
+        });
     }
-    
-    return res.status(200).json(response);
 });
 
 app.get('/', (req, res) => {
@@ -109,4 +146,7 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`📡 API endpoint: http://localhost:${PORT}/api/validate`);
+    console.log(`⚡ Response time target: < 500ms`);
 });
+
+module.exports = { validateUrlMiddleware, extractMetadata };
