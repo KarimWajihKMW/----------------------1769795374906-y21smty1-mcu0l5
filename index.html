@@ -12,22 +12,40 @@
       }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen text-gray-800">
-    <div class="max-w-md w-full text-center p-6">
-        <h1 class="text-3xl font-bold text-slate-800 mb-4 tracking-tight">مرحباً بك في أكوادرا</h1>
-        <p class="text-gray-600 mb-8">
+<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center min-h-screen text-gray-800">
+    <div class="max-w-4xl w-full text-center p-6">
+        <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4 tracking-tight animate-fade-in">مرحباً بك في أكوادرا</h1>
+        <p class="text-gray-600 mb-8 animate-slide-up">
             المنشئ الخارق الذي يساعدك على بناء تطبيقات جميلة باستخدام Tailwind CSS.
         </p>
         
-        <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 hover:scale-105 transition-all duration-300 cursor-pointer card group">
-            <div class="w-12 h-12 bg-indigo-50 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-indigo-100 transition-colors">
-                 <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 hover:scale-105 hover:shadow-2xl transition-all duration-300 cursor-pointer card group animate-slide-right">
+                <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:rotate-12 transition-transform duration-300 shadow-lg">
+                     <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                </div>
+                <h2 class="text-xl font-semibold text-gray-900 mb-2">جاهز للبناء</h2>
+                <p class="text-gray-500 text-sm">اطلب من الذكاء الاصطناعي تغيير هذا التصميم أو بناء شيء جديد كلياً.</p>
             </div>
-            <h2 class="text-xl font-semibold text-gray-900 mb-2">جاهز للبناء</h2>
-            <p class="text-gray-500 text-sm">اطلب من الذكاء الاصطناعي تغيير هذا التصميم أو بناء شيء جديد كلياً.</p>
+
+            <div class="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 hover:scale-105 hover:shadow-2xl transition-all duration-300 cursor-pointer group animate-slide-left">
+                <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:rotate-12 transition-transform duration-300 shadow-lg">
+                     <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h2 class="text-xl font-semibold text-gray-900 mb-2">API Validation</h2>
+                <p class="text-gray-500 text-sm">اختبر نقطة النهاية /api/validate للتحقق من صحة البيانات.</p>
+                <button onclick="testValidation()" class="mt-4 px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                    اختبر الآن
+                </button>
+            </div>
+        </div>
+
+        <div id="result" class="hidden bg-white p-6 rounded-2xl shadow-xl border border-gray-100 animate-fade-in">
+            <h3 class="text-lg font-semibold mb-3 text-gray-800">نتيجة الاختبار</h3>
+            <pre id="resultContent" class="text-right bg-gray-50 p-4 rounded-lg text-sm overflow-auto max-h-64 border border-gray-200"></pre>
         </div>
         
-        <div class="mt-8 text-sm text-gray-400">
+        <div class="mt-8 text-sm text-gray-400 animate-fade-in">
             مدعوم بواسطة Gemini 3 Pro
         </div>
     </div>
