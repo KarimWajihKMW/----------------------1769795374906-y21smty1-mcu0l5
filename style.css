@@ -55,3 +55,7 @@
 .animate-slide-left {
     animation: slide-left 0.8s ease-out;
 }
+
+body {
+    font-family: 'Cairo', sans-serif;
+}
